@@ -1,0 +1,182 @@
+/* PUKE Games - Shared Styles */
+/* Orange/green/brown blog aesthetic */
+
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap');
+
+:root {
+    --puke-orange: #e87f24;
+    --puke-green: #6b8e23;
+    --puke-brown: #8b4513;
+    --puke-cream: #fdf5e6;
+    --puke-dark: #2a1506;
+    --puke-red: #c0392b;
+    --puke-yellow: #f1c40f;
+    --puke-tan: #d2b48c;
+    --puke-light-green: #9acd32;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background: var(--puke-dark);
+    color: var(--puke-cream);
+    font-family: 'VT323', monospace;
+    overflow: hidden;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+/* Game canvas container */
+.game-container {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+canvas {
+    display: block;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+}
+
+/* HUD overlay */
+.hud {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 10px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 14px;
+    color: var(--puke-orange);
+    z-index: 100;
+    pointer-events: none;
+    text-shadow: 2px 2px 0 var(--puke-dark);
+}
+
+.hud-left, .hud-right, .hud-center {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+
+/* Meters / bars */
+.meter {
+    width: 150px;
+    height: 16px;
+    background: var(--puke-dark);
+    border: 2px solid var(--puke-orange);
+    position: relative;
+    overflow: hidden;
+}
+
+.meter-fill {
+    height: 100%;
+    transition: width 0.2s;
+}
+
+.meter-fill.danger { background: var(--puke-red); }
+.meter-fill.warning { background: var(--puke-yellow); }
+.meter-fill.good { background: var(--puke-green); }
+
+/* Screens (title, game over, etc) */
+.screen-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(42, 21, 6, 0.92);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+    text-align: center;
+}
+
+.screen-overlay h1 {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 28px;
+    color: var(--puke-orange);
+    text-shadow: 3px 3px 0 var(--puke-brown);
+    margin-bottom: 20px;
+    line-height: 1.4;
+}
+
+.screen-overlay h2 {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 16px;
+    color: var(--puke-green);
+    margin-bottom: 30px;
+}
+
+.screen-overlay p {
+    font-size: 24px;
+    color: var(--puke-tan);
+    margin-bottom: 15px;
+    max-width: 600px;
+    line-height: 1.4;
+}
+
+.screen-overlay .prompt {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 12px;
+    color: var(--puke-orange);
+    animation: blink 1s infinite;
+    margin-top: 30px;
+}
+
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+}
+
+/* Back to hub button */
+.back-btn {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 10px;
+    color: var(--puke-orange);
+    background: var(--puke-dark);
+    border: 2px solid var(--puke-orange);
+    padding: 6px 12px;
+    cursor: pointer;
+    z-index: 300;
+    pointer-events: all;
+    text-decoration: none;
+}
+
+.back-btn:hover {
+    background: var(--puke-orange);
+    color: var(--puke-dark);
+}
+
+/* Score display */
+.score {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 20px;
+    color: var(--puke-yellow);
+    text-shadow: 2px 2px 0 var(--puke-dark);
+}
+
+/* Mobile touch support */
+@media (max-width: 768px) {
+    .hud {
+        font-size: 10px;
+        padding: 5px 10px;
+    }
+    .screen-overlay h1 { font-size: 18px; }
+    .screen-overlay h2 { font-size: 12px; }
+    .screen-overlay p { font-size: 18px; }
+    .meter { width: 100px; height: 12px; }
+}
