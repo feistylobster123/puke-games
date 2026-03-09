@@ -108,6 +108,36 @@ Spin a wheel, get a random micro-challenge. 30-second bursts of chaos. Examples:
 
 ---
 
+### 11. UDAM: Up and Down A Mountain
+**Type:** Sisyphean endurance / rhythm tapper
+**Inspiration:** UDAM - 100 miles on A Mountain at ASU. 800 loops of the steepest asphalt hill in Tempe. July 4th. Entry fee: $8 in pennies. "100% Asphalt, 0% Flat."
+
+Pure Sisyphus energy. You run up A Mountain, you run down A Mountain. Then you do it 799 more times. Tap to climb, coast to descend. You carry pennies (one per completed lap, refunded from your $8 entry fee). The penny weight stacks and slows your ascent. July 4th heat builds throughout the day. Metal spikes are legal and other PUKE runners WILL trip you if you pass their PR distance. Fireworks go off in the background and occasionally on the course. A "soul counter" ticks from 800 down to 0. Nobody will reach 0.
+
+**Key mechanic:** Incremental degradation - same hill, 800 times, getting harder each loop from penny weight + heat + sabotage from other runners.
+
+---
+
+### 12. McDowell Road Man
+**Type:** Atmospheric encounter / mystery
+**Inspiration:** Nick Coury's 2011 poem about a mysterious lone figure seen wandering near White Tanks, Pass Mountain, and the Salado.
+
+You're running alone through the Phoenix desert at dusk. Occasionally, in the distance, you spot him - the McDowell Road Man. A lonely figure that appears below the White Tanks, glances at you near Pass Mountain, vanishes before you reach him. The game is a long desert run where you choose routes at forks. Some routes lead to sightings. Get close enough and he leaves something behind (a cryptic note, a trail marker, a shoe). Too aggressive and he disappears for miles. Piece together who he is from the fragments you collect. The landscape shifts - one run you're near the interstate, another near the Salado wash. Is he real? Are you hallucinating at mile 70? The desert doesn't answer.
+
+**Key mechanic:** Exploration + distance management. Chase without chasing. Collect fragments of a story that may not have an ending.
+
+---
+
+### 13. Rogue Valley Runners Store 5k
+**Type:** Chaotic race organizer / stealth comedy
+**Inspiration:** The PUKE event explicitly described as "non-sanctioned and not affiliated with Rogue Valley Runners in any way."
+
+You're organizing a totally unauthorized 5k that just happens to start and finish at someone else's running store. Draw a course through town, dodge cease-and-desist letters, recruit confused participants, set up bootleg aid stations with gas station gatorade. The store owner gets increasingly suspicious. Place cones, print bibs on a home printer, time finishers with your phone. Things escalate: the real store tries to set up their own sanctioned race on the same day, runners get confused about which race they're in, local news shows up. Score = number of finishers before you get shut down. Bonus points for style (matching shirts, post-race "awards ceremony" at Denny's).
+
+**Key mechanic:** Real-time course management + escalating opposition. A tower-defense-meets-race-director absurdist sim.
+
+---
+
 ## Technical Approach
 
 - **Stack:** Vanilla HTML/CSS/JS or lightweight framework (Phaser.js for physics-heavy games)
@@ -134,6 +164,11 @@ Spin a wheel, get a random micro-challenge. 30-second bursts of chaos. Examples:
 - PUKE and CRUD team logos
 - Avalanche mountain profile based on Kendall Mountain elevation data
 - Copper Canyon terrain references
+- A Mountain (Tempe) profile - the iconic ASU hill
+- McDowell Road Man silhouette - lonely desert figure
+- Phoenix strip mall / running store storefront
+- Penny pile sprite (for UDAM weight mechanic)
+- Desert dusk palette for McDowell Road Man (deep purple, burnt sienna, silhouette black)
 - Phoenix desert palette: burnt orange, saguaro green, trail brown, sunrise pink
 
 ---
