@@ -43,6 +43,10 @@
     let score = 0;
     let highScore = parseInt(localStorage.getItem('puke-nightpacer-high') || '0');
 
+    // Popup lockout (prevent accidental dismissal from rapid tapping)
+    let popupEnteredAt = 0;
+    const POPUP_LOCKOUT = 600;
+
     // Sequence
     let sequence = [];         // array of directions: 'left', 'right', 'straight'
     let seqLength = 3;         // starts at 3, grows
@@ -86,6 +90,7 @@
             return;
         }
         if (state === STATE.GAMEOVER && (e.code === 'Space' || e.code === 'Enter')) {
+            if (Date.now() - popupEnteredAt < POPUP_LOCKOUT) return;
             state = STATE.TITLE;
             return;
         }
@@ -99,7 +104,7 @@
     canvas.addEventListener('touchstart', e => {
         e.preventDefault();
         if (state === STATE.TITLE) { startGame(); return; }
-        if (state === STATE.GAMEOVER) { state = STATE.TITLE; return; }
+        if (state === STATE.GAMEOVER) { if (Date.now() - popupEnteredAt < POPUP_LOCKOUT) return; state = STATE.TITLE; return; }
         if (state === STATE.CHOOSING) {
             const t = e.touches[0];
             const x = t.clientX / canvas.width;
@@ -111,7 +116,7 @@
 
     canvas.addEventListener('mousedown', e => {
         if (state === STATE.TITLE) { startGame(); return; }
-        if (state === STATE.GAMEOVER) { state = STATE.TITLE; return; }
+        if (state === STATE.GAMEOVER) { if (Date.now() - popupEnteredAt < POPUP_LOCKOUT) return; state = STATE.TITLE; return; }
         if (state === STATE.CHOOSING) {
             const x = e.clientX / canvas.width;
             if (x < 0.33) makeChoice('left');
@@ -182,6 +187,7 @@
                         localStorage.setItem('puke-nightpacer-high', highScore.toString());
                     }
                     state = STATE.GAMEOVER;
+                    popupEnteredAt = Date.now();
                     return;
                 }
 
@@ -261,6 +267,7 @@
                 localStorage.setItem('puke-nightpacer-high', highScore.toString());
             }
             state = STATE.GAMEOVER;
+            popupEnteredAt = Date.now();
         }
     }
 

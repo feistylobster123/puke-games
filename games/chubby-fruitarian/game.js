@@ -63,6 +63,10 @@
     let score = 0;
     let highScore = parseInt(localStorage.getItem('puke-fruitarian-high') || '0');
 
+    // Popup lockout (prevent accidental dismissal from rapid tapping)
+    let popupEnteredAt = 0;
+    const POPUP_LOCKOUT = 600;
+
     // Input
     let keys = {};
     document.addEventListener('keydown', e => {
@@ -70,7 +74,7 @@
         if (e.code === 'Space') {
             e.preventDefault();
             if (state === STATE.TITLE) startGame();
-            else if (state === STATE.GAMEOVER) state = STATE.TITLE;
+            else if (state === STATE.GAMEOVER) { if (Date.now() - popupEnteredAt < POPUP_LOCKOUT) return; state = STATE.TITLE; }
             else if (state === STATE.RUNNING) eatBanana();
             else if (state === STATE.PICKING) pickUp();
         }
@@ -86,7 +90,7 @@
     canvas.addEventListener('touchstart', e => {
         e.preventDefault();
         if (state === STATE.TITLE) { startGame(); return; }
-        if (state === STATE.GAMEOVER) { state = STATE.TITLE; return; }
+        if (state === STATE.GAMEOVER) { if (Date.now() - popupEnteredAt < POPUP_LOCKOUT) return; state = STATE.TITLE; return; }
         if (state === STATE.PICKING) { pickUp(); return; }
 
         const t = e.touches[0];
@@ -97,7 +101,7 @@
     canvas.addEventListener('touchend', () => { keys.left = false; keys.right = false; });
     canvas.addEventListener('mousedown', e => {
         if (state === STATE.TITLE) { startGame(); return; }
-        if (state === STATE.GAMEOVER) { state = STATE.TITLE; return; }
+        if (state === STATE.GAMEOVER) { if (Date.now() - popupEnteredAt < POPUP_LOCKOUT) return; state = STATE.TITLE; return; }
         if (state === STATE.PICKING) { pickUp(); return; }
         if (e.clientX < canvas.width / 3) keys.left = true;
         else if (e.clientX > canvas.width * 2 / 3) keys.right = true;
@@ -197,6 +201,7 @@
                     localStorage.setItem('puke-fruitarian-high', highScore.toString());
                 }
                 state = STATE.GAMEOVER;
+                popupEnteredAt = Date.now();
                 return;
             }
 
@@ -287,6 +292,7 @@
                 localStorage.setItem('puke-fruitarian-high', highScore.toString());
             }
             state = STATE.GAMEOVER;
+            popupEnteredAt = Date.now();
         }
     }
 

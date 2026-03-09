@@ -104,6 +104,10 @@
     let dragPhase = false;
     let dragProgress = 0;
 
+    // Popup lockout (prevent accidental dismissal from rapid tapping)
+    let popupEnteredAt = 0;
+    const POPUP_LOCKOUT = 600;
+
     // --- Initialization ---
 
     function initRunners() {
@@ -185,6 +189,7 @@
                 }
             }
             state = STATE.GAMEOVER;
+            popupEnteredAt = Date.now();
             return true;
         }
         return false;
@@ -210,6 +215,7 @@
             return;
         }
         if (state === STATE.GAMEOVER) {
+            if (Date.now() - popupEnteredAt < POPUP_LOCKOUT) return;
             state = STATE.TITLE;
             return;
         }

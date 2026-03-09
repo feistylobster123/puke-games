@@ -50,6 +50,10 @@
     let pukeTimer = 0;
     let pukeParticles = [];
 
+    // Popup lockout (prevent accidental dismissal from rapid tapping)
+    let popupEnteredAt = 0;
+    const POPUP_LOCKOUT = 600;
+
     // Runner animation
     let runnerX = 0;
     let runnerBob = 0;
@@ -122,6 +126,7 @@
         if (state === STATE.TITLE) {
             startGame();
         } else if (state === STATE.GAMEOVER) {
+            if (Date.now() - popupEnteredAt < POPUP_LOCKOUT) return;
             state = STATE.TITLE;
         } else if (state === STATE.EATING) {
             chew();
@@ -256,6 +261,7 @@
             });
             if (pukeTimer <= 0) {
                 state = STATE.GAMEOVER;
+                popupEnteredAt = Date.now();
             }
         }
 

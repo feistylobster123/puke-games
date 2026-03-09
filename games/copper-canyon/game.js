@@ -109,6 +109,10 @@
     // Score
     let highScore = localStorage.getItem('puke-copper-high') || null;
 
+    // Popup lockout (prevent accidental dismissal from rapid tapping)
+    let popupEnteredAt = 0;
+    const POPUP_LOCKOUT = 600;
+
     // Input
     let spaceHeld = false;
     let spaceJustPressed = false;
@@ -119,7 +123,7 @@
             if (!spaceHeld) spaceJustPressed = true;
             spaceHeld = true;
             if (state === STATE.TITLE) startGame();
-            else if (state === STATE.GAMEOVER) state = STATE.TITLE;
+            else if (state === STATE.GAMEOVER) { if (Date.now() - popupEnteredAt < POPUP_LOCKOUT) return; state = STATE.TITLE; }
         }
     });
     document.addEventListener('keyup', e => {
@@ -136,7 +140,7 @@
         if (!spaceHeld) spaceJustPressed = true;
         spaceHeld = true;
         if (state === STATE.TITLE) startGame();
-        else if (state === STATE.GAMEOVER) state = STATE.TITLE;
+        else if (state === STATE.GAMEOVER) { if (Date.now() - popupEnteredAt < POPUP_LOCKOUT) return; state = STATE.TITLE; }
     });
     canvas.addEventListener('touchend', e => {
         e.preventDefault();
@@ -145,7 +149,7 @@
     });
     canvas.addEventListener('mousedown', e => {
         if (state === STATE.TITLE) startGame();
-        else if (state === STATE.GAMEOVER) state = STATE.TITLE;
+        else if (state === STATE.GAMEOVER) { if (Date.now() - popupEnteredAt < POPUP_LOCKOUT) return; state = STATE.TITLE; }
         else {
             if (!spaceHeld) spaceJustPressed = true;
             spaceHeld = true;
@@ -385,6 +389,7 @@
 
     function endGame(finished) {
         state = STATE.GAMEOVER;
+        popupEnteredAt = Date.now();
         if (finished) {
             let timeStr = formatTime(raceTime);
             let prev = highScore;

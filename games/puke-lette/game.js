@@ -65,6 +65,10 @@
     let mouseX = 0, mouseY = 0;
     let isHolding = false;
 
+    // Popup lockout (prevent accidental dismissal from rapid tapping)
+    let popupEnteredAt = 0;
+    const POPUP_LOCKOUT = 600;
+
     document.addEventListener('keydown', e => {
         if (e.code === 'Space' || e.code === 'Enter') {
             e.preventDefault();
@@ -97,6 +101,7 @@
         if (state === STATE.TITLE) {
             startSpin();
         } else if (state === STATE.RESULT) {
+            if (Date.now() - popupEnteredAt < POPUP_LOCKOUT) return;
             if (roundsPlayed >= 10) {
                 state = STATE.TITLE;
                 totalScore = 0;
@@ -365,6 +370,7 @@
             localStorage.setItem('puke-lette-high', highScore.toString());
         }
         state = STATE.RESULT;
+        popupEnteredAt = Date.now();
     }
 
     // Draw

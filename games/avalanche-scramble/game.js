@@ -48,6 +48,10 @@
     let score = 0;
     let highScore = parseInt(localStorage.getItem('puke-avalanche-high') || '0');
 
+    // Popup lockout (prevent accidental dismissal from rapid tapping)
+    let popupEnteredAt = 0;
+    const POPUP_LOCKOUT = 600;
+
     // Altitude sickness
     let sickness = 0;     // 0-100, increases with altitude per lap
 
@@ -71,7 +75,7 @@
         keys[e.code] = true;
         if (e.code === 'Space' || e.code === 'ArrowUp') e.preventDefault();
         if (state === STATE.TITLE && (e.code === 'Space' || e.code === 'Enter')) startGame();
-        if (state === STATE.GAMEOVER && (e.code === 'Space' || e.code === 'Enter')) state = STATE.TITLE;
+        if (state === STATE.GAMEOVER && (e.code === 'Space' || e.code === 'Enter')) { if (Date.now() - popupEnteredAt < POPUP_LOCKOUT) return; state = STATE.TITLE; }
     });
     document.addEventListener('keyup', e => { keys[e.code] = false; });
 
@@ -80,7 +84,7 @@
     canvas.addEventListener('touchstart', e => {
         e.preventDefault();
         if (state === STATE.TITLE) { startGame(); return; }
-        if (state === STATE.GAMEOVER) { state = STATE.TITLE; return; }
+        if (state === STATE.GAMEOVER) { if (Date.now() - popupEnteredAt < POPUP_LOCKOUT) return; state = STATE.TITLE; return; }
         for (const t of e.touches) {
             if (t.clientY > canvas.height * 0.6) {
                 if (t.clientX < canvas.width / 3) touchLeft = true;
@@ -97,7 +101,7 @@
 
     canvas.addEventListener('mousedown', e => {
         if (state === STATE.TITLE) { startGame(); return; }
-        if (state === STATE.GAMEOVER) { state = STATE.TITLE; return; }
+        if (state === STATE.GAMEOVER) { if (Date.now() - popupEnteredAt < POPUP_LOCKOUT) return; state = STATE.TITLE; return; }
     });
 
     function startGame() {
@@ -289,6 +293,7 @@
             localStorage.setItem('puke-avalanche-high', highScore.toString());
         }
         state = STATE.GAMEOVER;
+        popupEnteredAt = Date.now();
     }
 
     // Draw

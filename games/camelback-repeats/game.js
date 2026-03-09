@@ -68,6 +68,10 @@
     const WATER_STATION_LOCKOUT = 800; // ms before taps register
     let waterStationDrank = false; // track if they drank already
 
+    // Game over lockout
+    let gameOverEnteredAt = 0;
+    const GAMEOVER_LOCKOUT = 600;
+
     // Mountain profile (simple peaks)
     let mountainPoints = [];
     function generateMountain() {
@@ -112,6 +116,7 @@
         if (state === STATE.TITLE) {
             startGame();
         } else if (state === STATE.GAMEOVER) {
+            if (Date.now() - gameOverEnteredAt < GAMEOVER_LOCKOUT) return;
             state = STATE.TITLE;
         } else if (state === STATE.WATER_STATION) {
             // Input lockout: ignore taps for WATER_STATION_LOCKOUT ms after entering
@@ -262,6 +267,7 @@
                 }
                 if (trips >= 10) {
                     state = STATE.GAMEOVER;
+                    gameOverEnteredAt = Date.now();
                     return;
                 }
                 climbing = true;
@@ -284,11 +290,13 @@
         // Time's up at 3pm
         if (gameTime >= 21600) {
             state = STATE.GAMEOVER;
+            gameOverEnteredAt = Date.now();
         }
 
         // Dehydration game over
         if (water <= 0 && heat > 70) {
             state = STATE.GAMEOVER;
+            gameOverEnteredAt = Date.now();
         }
 
         // Runner anim

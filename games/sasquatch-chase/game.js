@@ -64,6 +64,10 @@
     // Score
     let highScore = parseInt(localStorage.getItem('puke-sasquatch-high') || '0');
 
+    // Popup lockout (prevent accidental dismissal from rapid tapping)
+    let popupEnteredAt = 0;
+    const POPUP_LOCKOUT = 600;
+
     // Init stars
     function initStars() {
         stars = [];
@@ -112,8 +116,8 @@
         if (e.code === 'Space') {
             e.preventDefault();
             if (state === STATE.TITLE) { startGame(); return; }
-            if (state === STATE.GAMEOVER) { state = STATE.TITLE; return; }
-            if (state === STATE.REVIEW) { nextRound(); return; }
+            if (state === STATE.GAMEOVER) { if (Date.now() - popupEnteredAt < POPUP_LOCKOUT) return; state = STATE.TITLE; return; }
+            if (state === STATE.REVIEW) { if (Date.now() - popupEnteredAt < POPUP_LOCKOUT) return; nextRound(); return; }
             holdingRun = true;
         }
         if (e.code === 'KeyF' || e.code === 'Enter') {
@@ -130,8 +134,8 @@
     canvas.addEventListener('touchstart', e => {
         e.preventDefault();
         if (state === STATE.TITLE) { startGame(); return; }
-        if (state === STATE.GAMEOVER) { state = STATE.TITLE; return; }
-        if (state === STATE.REVIEW) { nextRound(); return; }
+        if (state === STATE.GAMEOVER) { if (Date.now() - popupEnteredAt < POPUP_LOCKOUT) return; state = STATE.TITLE; return; }
+        if (state === STATE.REVIEW) { if (Date.now() - popupEnteredAt < POPUP_LOCKOUT) return; nextRound(); return; }
 
         const touch = e.touches[0];
         if (touch.clientX > canvas.width / 2) {
@@ -147,8 +151,8 @@
     });
     canvas.addEventListener('mousedown', e => {
         if (state === STATE.TITLE) { startGame(); return; }
-        if (state === STATE.GAMEOVER) { state = STATE.TITLE; return; }
-        if (state === STATE.REVIEW) { nextRound(); return; }
+        if (state === STATE.GAMEOVER) { if (Date.now() - popupEnteredAt < POPUP_LOCKOUT) return; state = STATE.TITLE; return; }
+        if (state === STATE.REVIEW) { if (Date.now() - popupEnteredAt < POPUP_LOCKOUT) return; nextRound(); return; }
         if (e.clientX > canvas.width / 2) takePhoto();
         else holdingRun = true;
     });
@@ -230,6 +234,7 @@
 
         // Show review screen
         state = STATE.REVIEW;
+        popupEnteredAt = Date.now();
     }
 
     // Update
@@ -312,6 +317,7 @@
             if (photos.length >= round) {
                 if (round >= 5) {
                     state = STATE.GAMEOVER;
+                    popupEnteredAt = Date.now();
                 }
             }
         }
@@ -319,6 +325,7 @@
         // Game ends after 5 rounds
         if (round > 5) {
             state = STATE.GAMEOVER;
+            popupEnteredAt = Date.now();
         }
     }
 

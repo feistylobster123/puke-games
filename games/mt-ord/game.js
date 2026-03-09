@@ -66,6 +66,10 @@
     let complaintMsg = '';
     let complaintName = '';
 
+    // Popup lockout (prevent accidental dismissal from rapid tapping)
+    let popupEnteredAt = 0;
+    const POPUP_LOCKOUT = 600;
+
     // Snow particles
     let snowflakes = [];
     for (let i = 0; i < 100; i++) {
@@ -86,10 +90,12 @@
             return;
         }
         if (state === STATE.GAMEOVER && (e.code === 'Space' || e.code === 'Enter')) {
+            if (Date.now() - popupEnteredAt < POPUP_LOCKOUT) return;
             state = STATE.TITLE;
             return;
         }
         if (state === STATE.SUMMIT && (e.code === 'Space' || e.code === 'Enter')) {
+            if (Date.now() - popupEnteredAt < POPUP_LOCKOUT) return;
             state = STATE.TITLE;
             return;
         }
@@ -106,6 +112,7 @@
             }
         }
         if (state === STATE.EVENT) {
+            if (Date.now() - popupEnteredAt < POPUP_LOCKOUT) return;
             if (e.code === 'Digit1' || e.code === 'KeyA') resolveEvent(0);
             if (e.code === 'Digit2' || e.code === 'KeyB') resolveEvent(1);
         }
@@ -114,10 +121,11 @@
     canvas.addEventListener('touchstart', e => {
         e.preventDefault();
         if (state === STATE.TITLE) { startGame(); return; }
-        if (state === STATE.GAMEOVER || state === STATE.SUMMIT) { state = STATE.TITLE; return; }
+        if (state === STATE.GAMEOVER || state === STATE.SUMMIT) { if (Date.now() - popupEnteredAt < POPUP_LOCKOUT) return; state = STATE.TITLE; return; }
         if (state === STATE.CLIMBING) { doClimb(); return; }
         if (state === STATE.QTE) { qteSuccess = true; resolveQTE(); return; }
         if (state === STATE.EVENT) {
+            if (Date.now() - popupEnteredAt < POPUP_LOCKOUT) return;
             const t = e.touches[0];
             if (t.clientX < canvas.width / 2) resolveEvent(0);
             else resolveEvent(1);
@@ -126,10 +134,11 @@
 
     canvas.addEventListener('mousedown', e => {
         if (state === STATE.TITLE) { startGame(); return; }
-        if (state === STATE.GAMEOVER || state === STATE.SUMMIT) { state = STATE.TITLE; return; }
+        if (state === STATE.GAMEOVER || state === STATE.SUMMIT) { if (Date.now() - popupEnteredAt < POPUP_LOCKOUT) return; state = STATE.TITLE; return; }
         if (state === STATE.CLIMBING) { doClimb(); return; }
         if (state === STATE.QTE) { qteSuccess = true; resolveQTE(); return; }
         if (state === STATE.EVENT) {
+            if (Date.now() - popupEnteredAt < POPUP_LOCKOUT) return;
             if (e.clientX < canvas.width / 2) resolveEvent(0);
             else resolveEvent(1);
         }
@@ -248,6 +257,7 @@
         eventText = ev.text;
         eventChoices = ev.choices;
         state = STATE.EVENT;
+        popupEnteredAt = Date.now();
     }
 
     function resolveEvent(choiceIdx) {
@@ -314,6 +324,7 @@
                     localStorage.setItem('puke-mtord-high', highScore.toString());
                 }
                 state = STATE.SUMMIT;
+                popupEnteredAt = Date.now();
                 return;
             }
 
@@ -325,6 +336,7 @@
                     localStorage.setItem('puke-mtord-high', highScore.toString());
                 }
                 state = STATE.GAMEOVER;
+                popupEnteredAt = Date.now();
             }
         }
 

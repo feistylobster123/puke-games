@@ -48,6 +48,10 @@
     let score = 0;
     let highScore = parseInt(localStorage.getItem('puke-udam-high') || '0');
 
+    // Popup lockout (prevent accidental dismissal from rapid tapping)
+    let popupEnteredAt = 0;
+    const POPUP_LOCKOUT = 600;
+
     // Rivals (other PUKE runners)
     let rivals = [];
     let rivalTripCooldown = 0;
@@ -89,7 +93,7 @@
         lastTapTime = now;
 
         if (state === STATE.TITLE) { startGame(); return; }
-        if (state === STATE.GAMEOVER) { state = STATE.TITLE; return; }
+        if (state === STATE.GAMEOVER) { if (Date.now() - popupEnteredAt < POPUP_LOCKOUT) return; state = STATE.TITLE; return; }
         if (state === STATE.TRIPPED) return; // can't move while tripped
 
         doStride();
@@ -225,6 +229,7 @@
                     localStorage.setItem('puke-udam-high', highScore.toString());
                 }
                 state = STATE.GAMEOVER;
+                popupEnteredAt = Date.now();
                 return;
             }
 
@@ -289,6 +294,7 @@
                 localStorage.setItem('puke-udam-high', highScore.toString());
             }
             state = STATE.GAMEOVER;
+            popupEnteredAt = Date.now();
         }
 
         // Runner animation

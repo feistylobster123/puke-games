@@ -72,6 +72,10 @@
     // Scroll
     let scrollX = 0;
 
+    // Popup lockout (prevent accidental dismissal from rapid tapping)
+    let popupEnteredAt = 0;
+    const POPUP_LOCKOUT = 600;
+
     // Input
     document.addEventListener('keydown', e => {
         if (e.code === 'Space' || e.code === 'Enter') {
@@ -79,6 +83,7 @@
             handleTap();
         }
         if (state === STATE.EVENT) {
+            if (Date.now() - popupEnteredAt < POPUP_LOCKOUT) return;
             if (e.code === 'Digit1' || e.code === 'KeyA') resolveEvent(0);
             if (e.code === 'Digit2' || e.code === 'KeyB') resolveEvent(1);
         }
@@ -92,8 +97,9 @@
     canvas.addEventListener('touchstart', e => {
         e.preventDefault();
         if (state === STATE.TITLE) { startGame(); return; }
-        if (state === STATE.GAMEOVER || state === STATE.SHUTDOWN) { state = STATE.TITLE; return; }
+        if (state === STATE.GAMEOVER || state === STATE.SHUTDOWN) { if (Date.now() - popupEnteredAt < POPUP_LOCKOUT) return; state = STATE.TITLE; return; }
         if (state === STATE.EVENT) {
+            if (Date.now() - popupEnteredAt < POPUP_LOCKOUT) return;
             const t = e.touches[0];
             if (t.clientX < canvas.width / 2) resolveEvent(0);
             else resolveEvent(1);
@@ -104,8 +110,9 @@
 
     canvas.addEventListener('mousedown', e => {
         if (state === STATE.TITLE) { startGame(); return; }
-        if (state === STATE.GAMEOVER || state === STATE.SHUTDOWN) { state = STATE.TITLE; return; }
+        if (state === STATE.GAMEOVER || state === STATE.SHUTDOWN) { if (Date.now() - popupEnteredAt < POPUP_LOCKOUT) return; state = STATE.TITLE; return; }
         if (state === STATE.EVENT) {
+            if (Date.now() - popupEnteredAt < POPUP_LOCKOUT) return;
             if (e.clientX < canvas.width / 2) resolveEvent(0);
             else resolveEvent(1);
             return;
@@ -115,7 +122,7 @@
 
     function handleTap() {
         if (state === STATE.TITLE) { startGame(); return; }
-        if (state === STATE.GAMEOVER || state === STATE.SHUTDOWN) { state = STATE.TITLE; return; }
+        if (state === STATE.GAMEOVER || state === STATE.SHUTDOWN) { if (Date.now() - popupEnteredAt < POPUP_LOCKOUT) return; state = STATE.TITLE; return; }
 
         if (state === STATE.SETUP) {
             // Tap cycles through actions
@@ -222,6 +229,7 @@
 
     function triggerEvent(context) {
         state = STATE.EVENT;
+        popupEnteredAt = Date.now();
 
         const events = {
             cone: [
@@ -335,6 +343,7 @@
             localStorage.setItem('puke-roguevalley-high', highScore.toString());
         }
         state = STATE.SHUTDOWN;
+        popupEnteredAt = Date.now();
     }
 
     function update() {
@@ -356,6 +365,7 @@
                     localStorage.setItem('puke-roguevalley-high', highScore.toString());
                 }
                 state = STATE.GAMEOVER;
+                popupEnteredAt = Date.now();
             }
 
             // Suspicion creeps up during race
