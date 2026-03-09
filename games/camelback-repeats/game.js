@@ -57,6 +57,17 @@
     let runnerBob = 0;
     let runnerFrame = 0;
 
+    // Toast notifications (show for fixed duration, no dismiss needed)
+    let toasts = [];  // {text, color, life, maxLife}
+    function showToast(text, color, durationFrames) {
+        toasts.push({ text, color: color || C.text, life: durationFrames || 120, maxLife: durationFrames || 120 });
+    }
+
+    // Water station input lockout
+    let waterStationEnteredAt = 0;
+    const WATER_STATION_LOCKOUT = 800; // ms before taps register
+    let waterStationDrank = false; // track if they drank already
+
     // Mountain profile (simple peaks)
     let mountainPoints = [];
     function generateMountain() {
@@ -103,6 +114,8 @@
         } else if (state === STATE.GAMEOVER) {
             state = STATE.TITLE;
         } else if (state === STATE.WATER_STATION) {
+            // Input lockout: ignore taps for WATER_STATION_LOCKOUT ms after entering
+            if (now - waterStationEnteredAt < WATER_STATION_LOCKOUT) return;
             handleDrink();
         } else if (state === STATE.CLIMBING || state === STATE.DESCENDING || state === STATE.HALLUCINATING) {
             doClimb();
@@ -111,8 +124,15 @@
 
     function handleDrink() {
         if (state === STATE.WATER_STATION) {
-            water = Math.min(100, water + 25);
-            state = climbing ? STATE.CLIMBING : STATE.DESCENDING;
+            if (!waterStationDrank) {
+                // First valid tap: drink
+                water = Math.min(100, water + 25);
+                waterStationDrank = true;
+                showToast('+25% WATER', C.water, 60);
+            } else {
+                // Already drank, second tap: leave
+                state = climbing ? STATE.CLIMBING : STATE.DESCENDING;
+            }
         }
     }
 
@@ -129,6 +149,7 @@
         score = 0;
         hallucinations = [];
         hallucinationIntensity = 0;
+        toasts = [];
     }
 
     function doClimb() {
@@ -202,6 +223,8 @@
                 if (Math.abs(altitude - ws) < 2 && climbSpeed < 2) {
                     if (water < 80) {
                         state = STATE.WATER_STATION;
+                        waterStationEnteredAt = Date.now();
+                        waterStationDrank = false;
                     }
                 }
             }
@@ -211,6 +234,7 @@
                 altitude = 100;
                 climbing = false;
                 state = STATE.DESCENDING;
+                showToast('SUMMIT! HEADING DOWN', '#f1c40f', 150);
             }
         } else if (state === STATE.DESCENDING) {
             altitude -= climbSpeed * 0.15;
@@ -221,6 +245,8 @@
                 if (Math.abs(altitude - ws) < 2 && climbSpeed < 2) {
                     if (water < 60) {
                         state = STATE.WATER_STATION;
+                        waterStationEnteredAt = Date.now();
+                        waterStationDrank = false;
                     }
                 }
             }
@@ -240,6 +266,7 @@
                 }
                 climbing = true;
                 state = STATE.CLIMBING;
+                showToast('TRIP ' + trips + ' DONE! CLIMBING AGAIN', C.cactus, 150);
             }
         }
 
@@ -274,6 +301,9 @@
         if (Date.now() - lastTapTime > 500) {
             tapRate *= 0.85;
         }
+
+        // Update toasts
+        toasts = toasts.filter(t => { t.life--; return t.life > 0; });
     }
 
     // Draw
@@ -554,30 +584,65 @@
         ctx.fillText('TRIPS: ' + trips, w - 20, 64);
     }
 
+    function drawToasts() {
+        const w = canvas.width;
+        toasts.forEach((t, i) => {
+            const fadeIn = Math.min(1, (t.maxLife - t.life) / 10);
+            const fadeOut = Math.min(1, t.life / 20);
+            const alpha = Math.min(fadeIn, fadeOut);
+            const y = canvas.height * 0.55 + i * 30;
+
+            ctx.globalAlpha = alpha;
+            ctx.font = '12px "Press Start 2P", monospace';
+            ctx.fillStyle = t.color;
+            ctx.textAlign = 'center';
+            ctx.fillText(t.text, w / 2, y);
+            ctx.globalAlpha = 1;
+        });
+    }
+
     function drawWaterStation() {
         const w = canvas.width, h = canvas.height;
+        const locked = Date.now() - waterStationEnteredAt < WATER_STATION_LOCKOUT;
+
         ctx.fillStyle = 'rgba(42, 21, 6, 0.7)';
         ctx.fillRect(0, 0, w, h);
 
         ctx.font = '16px "Press Start 2P", monospace';
         ctx.fillStyle = C.water;
         ctx.textAlign = 'center';
-        ctx.fillText('WATER STATION', w / 2, h * 0.35);
+        ctx.fillText('WATER STATION', w / 2, h * 0.32);
 
         ctx.font = '20px "VT323", monospace';
         ctx.fillStyle = C.text;
-        ctx.fillText('Water: ' + Math.floor(water) + '%', w / 2, h * 0.45);
+        ctx.fillText('Water: ' + Math.floor(water) + '%', w / 2, h * 0.43);
 
-        ctx.font = '12px "Press Start 2P", monospace';
-        const blink = Math.sin(Date.now() / 400) > 0;
-        if (blink) {
+        if (locked) {
+            // Show "arriving" state during lockout
+            ctx.font = '10px "Press Start 2P", monospace';
+            ctx.fillStyle = C.textDim;
+            ctx.fillText('...', w / 2, h * 0.55);
+        } else if (!waterStationDrank) {
+            // Ready to drink
+            ctx.font = '12px "Press Start 2P", monospace';
+            const blink = Math.sin(Date.now() / 400) > 0;
+            if (blink) {
+                ctx.fillStyle = C.water;
+                ctx.fillText('TAP TO DRINK', w / 2, h * 0.55);
+            }
+        } else {
+            // Already drank, prompt to continue
+            ctx.font = '12px "Press Start 2P", monospace';
             ctx.fillStyle = C.water;
-            ctx.fillText('TAP TO DRINK', w / 2, h * 0.58);
-        }
+            ctx.fillText('REFRESHED!', w / 2, h * 0.53);
 
-        ctx.font = '10px "Press Start 2P", monospace';
-        ctx.fillStyle = C.textDim;
-        ctx.fillText('TAP AGAIN TO KEEP MOVING', w / 2, h * 0.66);
+            ctx.font = '10px "Press Start 2P", monospace';
+            const blink = Math.sin(Date.now() / 400) > 0;
+            if (blink) {
+                ctx.fillStyle = C.text;
+                ctx.fillText('TAP TO CONTINUE', w / 2, h * 0.62);
+            }
+        }
     }
 
     function drawTitle() {
@@ -684,6 +749,7 @@
         drawRunner();
         drawHallucinations();
         drawHUD();
+        drawToasts();
 
         if (state === STATE.WATER_STATION) {
             drawWaterStation();
