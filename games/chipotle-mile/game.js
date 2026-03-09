@@ -60,10 +60,37 @@
     let burrBites = 0;       // visual bite marks
 
     // Difficulty scaling
-    function getBurrSize() { return 1 + lap * 0.3; }  // burrito gets bigger each lap
-    function getNauseaRate() { return 0.4 + lap * 0.12; }  // nausea rises faster each lap
-    function getNauseaDecay() { return 0.08 - Math.min(0.06, lap * 0.005); } // decays slower as laps go on
-    function getRunNauseaSpike() { return 0.15 + nausea * 0.004 + lap * 0.03; } // fast running spikes nausea more when already high
+    // Burrito grows each lap: more bites needed
+    function getBurrSize() { return 1 + lap * 0.25; }
+
+    // Nausea per bite: base amount, multiplied by chew speed
+    function getBaseNauseaPerBite() { return 3.0 + lap * 0.5; }
+
+    // Chewing speed multiplier: slow = safe, fast = dangerous
+    // 2 CPS = 0.8x (careful), 4 CPS = 1.0x, 7 CPS = 2.05x, 10 CPS = 3.1x
+    function getChewSpeedMult() {
+        if (tapRate <= 2) return 0.8;
+        if (tapRate <= 4) return 1.0;
+        return 1.0 + (Math.min(tapRate, 10) - 4) * 0.35;
+    }
+
+    // Running nausea per stride: small base + BIG scaling with current nausea (sloshing)
+    function getRunNauseaPerTap() {
+        const base = 0.3 + lap * 0.08;
+        const slosh = (nausea / 100) * (1.5 + lap * 0.2);
+        const speedMult = tapRate > 4 ? 1.0 + (Math.min(tapRate, 10) - 4) * 0.2 : 1.0;
+        return (base + slosh) * speedMult;
+    }
+
+    // Nausea decay per frame: meaningful when resting, penalized at high nausea
+    function getNauseaDecay() {
+        const msSinceTap = Date.now() - lastTapTime;
+        if (msSinceTap < 250) return 0; // no decay while actively tapping
+        const baseDecay = 0.12;
+        const nauseaPenalty = nausea > 50 ? 0.5 : 1.0; // high nausea lingers
+        const lapPenalty = Math.max(0.3, 1.0 - lap * 0.06); // later laps decay slower
+        return baseDecay * nauseaPenalty * lapPenalty;
+    }
 
     // Input
     let keys = {};
@@ -120,8 +147,12 @@
         // Each tap = a bite. Bigger burrito = more bites needed
         const biteSize = 8 / getBurrSize();
         burrProgress = Math.min(100, burrProgress + biteSize);
-        nausea = Math.min(100, nausea + getNauseaRate());
         burrBites++;
+
+        // Nausea per bite scales with chew speed
+        // Fast chewing = way more nausea. Slow, careful bites = manageable.
+        const nauseaGain = getBaseNauseaPerBite() * getChewSpeedMult();
+        nausea = Math.min(100, nausea + nauseaGain);
 
         if (nausea >= 100) {
             triggerPuke();
@@ -141,10 +172,11 @@
         const stride = 3.5;
         runSpeed = Math.min(12, runSpeed + stride);
 
-        // Running fast with high nausea = danger
-        if (tapRate > 4) {
-            nausea = Math.min(100, nausea + getRunNauseaSpike() * tapRate * 0.3);
-        }
+        // Every stride adds nausea. Amount depends on:
+        // - Current nausea level (sloshing effect - full stomach + running = bad)
+        // - How fast you're tapping (sprinting vs jogging)
+        // - Lap number (cumulative fatigue)
+        nausea = Math.min(100, nausea + getRunNauseaPerTap());
 
         if (nausea >= 100) {
             triggerPuke();
@@ -175,10 +207,8 @@
             runProgress += runSpeed * 0.15;
             runSpeed *= 0.92; // friction / decel
 
-            // Nausea slowly decays while running at moderate pace
-            if (tapRate < 3) {
-                nausea = Math.max(0, nausea - getNauseaDecay());
-            }
+            // Nausea decays when not actively tapping (resting between strides)
+            nausea = Math.max(0, nausea - getNauseaDecay());
 
             // Tap rate decays
             if (Date.now() - lastTapTime > 400) {
@@ -197,8 +227,8 @@
                 state = STATE.EATING;
                 burrProgress = 0;
                 burrBites = 0;
-                // Small nausea reduction between laps
-                nausea = Math.max(0, nausea - 8);
+                // Tiny relief between laps (your stomach doesn't reset)
+                nausea = Math.max(0, nausea - 3);
             }
 
             // Runner animation
@@ -207,8 +237,8 @@
         }
 
         if (state === STATE.EATING) {
-            // Nausea slowly decays while eating (you're standing still)
-            nausea = Math.max(0, nausea - getNauseaDecay() * 0.5);
+            // Nausea decays between bites (rewards pacing yourself)
+            nausea = Math.max(0, nausea - getNauseaDecay());
             if (Date.now() - lastTapTime > 400) {
                 tapRate *= 0.9;
             }
@@ -445,8 +475,19 @@
             ctx.fillStyle = C.burrito;
             ctx.fillText('EAT THE BURRITO', w / 2, canvas.height * 0.45);
             ctx.font = '10px "Press Start 2P", monospace';
-            ctx.fillStyle = C.textDim;
-            ctx.fillText('TAP TO CHEW', w / 2, canvas.height * 0.45 + 20);
+
+            // Show chew speed warning
+            const chewMult = getChewSpeedMult();
+            if (chewMult > 2.0) {
+                ctx.fillStyle = C.nauseaHigh;
+                ctx.fillText('SLOW DOWN!', w / 2, canvas.height * 0.45 + 20);
+            } else if (chewMult > 1.3) {
+                ctx.fillStyle = C.nausea;
+                ctx.fillText('CHEWING FAST', w / 2, canvas.height * 0.45 + 20);
+            } else {
+                ctx.fillStyle = C.textDim;
+                ctx.fillText('TAP TO CHEW', w / 2, canvas.height * 0.45 + 20);
+            }
 
             // Burrito progress
             const pctText = Math.floor(burrProgress) + '% EATEN';
@@ -458,8 +499,9 @@
             ctx.font = '10px "Press Start 2P", monospace';
             ctx.fillStyle = C.textDim;
 
-            const paceText = tapRate > 5 ? 'TOO FAST!' : tapRate > 3 ? 'FAST' : 'STEADY';
-            const paceColor = tapRate > 5 ? C.nauseaHigh : tapRate > 3 ? C.nausea : C.text;
+            const danger = nausea > 70;
+            const paceText = tapRate > 6 ? 'SPRINTING!' : tapRate > 4 ? 'FAST' : tapRate > 2 ? 'JOGGING' : 'WALKING';
+            const paceColor = (tapRate > 5 && danger) ? C.nauseaHigh : tapRate > 4 ? C.nausea : C.text;
             ctx.fillStyle = paceColor;
             ctx.fillText(paceText, w / 2, canvas.height * 0.45 + 20);
         }
