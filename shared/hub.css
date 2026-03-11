@@ -163,6 +163,10 @@ body {
     height: 140px;
     overflow: hidden;
     border-bottom: 2px solid #b45f06;
+    background: #371d0a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .game-card.featured .card-img img {
@@ -171,6 +175,16 @@ body {
     object-fit: cover;
     display: block;
     transition: transform 0.3s ease;
+}
+
+/* GIF images are small - center them without stretching */
+.game-card.featured .card-img img[src$=".gif"] {
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    image-rendering: pixelated;
 }
 
 .game-card.featured:hover .card-img img {
