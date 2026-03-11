@@ -106,7 +106,8 @@ body {
     color: #f1c40f;
     margin-top: 12px;
     letter-spacing: 2px;
-    animation: pulse-announce 3s ease-in-out infinite;
+    display: block;
+    white-space: nowrap;
 }
 
 @keyframes pulse-announce {

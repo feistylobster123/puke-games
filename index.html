@@ -23,7 +23,7 @@
                 <img src="assets/puke-shirt.gif" alt="PUKE Logo" class="puke-logo puke-logo-right">
             </div>
             <div class="tagline">13 browser-based games of suffering, inspired by <a href="https://ultrapuke.blogspot.com" target="_blank" rel="noopener">ultrapuke.blogspot.com</a></div>
-            <div class="header-announce">THE WORLD NEEDS THE RE-BIRTH OF PUKE.</div>
+            <marquee behavior="scroll" direction="left" scrollamount="4" class="header-announce">THE WORLD NEEDS THE RE-BIRTH OF PUKE. &nbsp;&nbsp;&nbsp; THE WORLD NEEDS THE RE-BIRTH OF PUKE. &nbsp;&nbsp;&nbsp; THE WORLD NEEDS THE RE-BIRTH OF PUKE.</marquee>
         </header>
 
         <main class="hub-content">
@@ -173,5 +173,61 @@
             </div>
         </footer>
     </div>
+    <!-- 90s cursor circle effect -->
+    <script>
+    (function() {
+        var text = 'Ultra P.U.K.E. \u2022 ';
+        var chars = text.split('');
+        var radius = 60;
+        var speed = 0.04;
+        var angle = 0;
+        var mouseX = -200, mouseY = -200;
+        var curX = -200, curY = -200;
+        var ease = 0.1;
+
+        // Create character spans
+        var els = [];
+        chars.forEach(function(ch) {
+            var span = document.createElement('span');
+            span.textContent = ch;
+            span.style.cssText =
+                'position:fixed;top:0;left:0;pointer-events:none;z-index:9999;' +
+                'font-family:"Press Start 2P",monospace;font-size:10px;font-weight:bold;' +
+                'color:#f1c40f;text-shadow:1px 1px 0 #371d0a;' +
+                'will-change:transform;';
+            document.body.appendChild(span);
+            els.push(span);
+        });
+
+        document.addEventListener('mousemove', function(e) {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+        });
+
+        function animate() {
+            // Ease the circle center toward the mouse
+            curX += (mouseX - curX) * ease;
+            curY += (mouseY - curY) * ease;
+
+            angle += speed;
+
+            for (var i = 0; i < els.length; i++) {
+                var a = angle + (i * (2 * Math.PI / els.length));
+                var x = curX + Math.cos(a) * radius - 5;
+                var y = curY + Math.sin(a) * radius - 6;
+                els[i].style.transform = 'translate(' + x + 'px,' + y + 'px) rotate(' + (a + Math.PI/2) + 'rad)';
+            }
+
+            requestAnimationFrame(animate);
+        }
+
+        // Only run on non-touch devices (no point on mobile)
+        if (!('ontouchstart' in window)) {
+            animate();
+        } else {
+            els.forEach(function(el) { el.remove(); });
+        }
+    })();
+    </script>
 </body>
 </html>
